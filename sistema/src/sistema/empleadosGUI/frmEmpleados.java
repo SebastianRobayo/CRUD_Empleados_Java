@@ -1,5 +1,6 @@
 package sistema.empleadosGUI;
 import java.sql.ResultSet;
+import sistema.empleadosBL.empleadosBL;
 import sistema.empleadosDAL.conexion;
 
 public class frmEmpleados extends javax.swing.JFrame {
@@ -119,7 +120,13 @@ public class frmEmpleados extends javax.swing.JFrame {
     private void btnAgregarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnAgregarActionPerformed
         
         conexion objConexion=new conexion();
-        objConexion.ejecutarSentenciaSQL("insert into Empleados (ID, Nombre, Correo) values (null, 'juan', 'juan@gmail.com')");
+        
+        empleadosBL oEmpleados=recuperarDatosGUI();
+        
+        String strSentenciaInsert= String.format("insert into Empleados (ID, Nombre, Correo)"
+                + " values (null, '%s', '%s')",oEmpleados.getNombre(),oEmpleados.getCorreo());
+        
+        objConexion.ejecutarSentenciaSQL(strSentenciaInsert);
         try {
             ResultSet resultado=objConexion.consultarRegistros("select * from Empleados");
             while(resultado.next()){
@@ -129,10 +136,21 @@ public class frmEmpleados extends javax.swing.JFrame {
             }
         } catch (Exception e) {
             System.out.println(e);
-        }
-        
+        }       
     }//GEN-LAST:event_btnAgregarActionPerformed
 
+    public empleadosBL recuperarDatosGUI(){
+        empleadosBL oEmpleados=new empleadosBL();
+        
+        int ID= (txtID.getText().isEmpty())?0: Integer.parseInt(txtID.getText());
+        
+        oEmpleados.setID(ID);
+        oEmpleados.setNombre(txtNombre.getText());
+        oEmpleados.setCorreo(txtCorreo.getText());
+        return oEmpleados;
+                
+    }
+    
     public static void main(String args[]) {
         
         //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
