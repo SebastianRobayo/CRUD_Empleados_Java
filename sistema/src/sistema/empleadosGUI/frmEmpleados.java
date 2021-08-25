@@ -1,12 +1,23 @@
 package sistema.empleadosGUI;
 import java.sql.ResultSet;
+import javax.swing.JTable;
+import javax.swing.table.DefaultTableModel;
 import sistema.empleadosBL.empleadosBL;
 import sistema.empleadosDAL.conexion;
 
 public class frmEmpleados extends javax.swing.JFrame {
+    DefaultTableModel modelo;
+    
 
     public frmEmpleados() {
         initComponents();
+        
+        String[] titulos={"ID","Nombre","Correo"};
+        modelo=new DefaultTableModel(null,titulos);
+        tblEmpleados.setModel(modelo);
+        
+        this.mostrarDatos();
+        this.limpiar();
     }
 
     @SuppressWarnings("unchecked")
@@ -14,7 +25,7 @@ public class frmEmpleados extends javax.swing.JFrame {
     private void initComponents() {
 
         jScrollPane1 = new javax.swing.JScrollPane();
-        jTable1 = new javax.swing.JTable();
+        tblEmpleados = new javax.swing.JTable();
         btnAgregar = new javax.swing.JButton();
         btnEditar = new javax.swing.JButton();
         btnBorrar = new javax.swing.JButton();
@@ -28,7 +39,7 @@ public class frmEmpleados extends javax.swing.JFrame {
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
-        jTable1.setModel(new javax.swing.table.DefaultTableModel(
+        tblEmpleados.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
                 {null, null, null, null},
                 {null, null, null, null},
@@ -39,7 +50,12 @@ public class frmEmpleados extends javax.swing.JFrame {
                 "Title 1", "Title 2", "Title 3", "Title 4"
             }
         ));
-        jScrollPane1.setViewportView(jTable1);
+        tblEmpleados.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                tblEmpleadosMouseClicked(evt);
+            }
+        });
+        jScrollPane1.setViewportView(tblEmpleados);
 
         btnAgregar.setText("Agregar");
         btnAgregar.addActionListener(new java.awt.event.ActionListener() {
@@ -49,10 +65,27 @@ public class frmEmpleados extends javax.swing.JFrame {
         });
 
         btnEditar.setText("Editar");
+        btnEditar.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnEditarActionPerformed(evt);
+            }
+        });
 
         btnBorrar.setText("Borrar");
+        btnBorrar.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnBorrarActionPerformed(evt);
+            }
+        });
 
         btnCancelar.setText("Cancelar");
+        btnCancelar.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnCancelarActionPerformed(evt);
+            }
+        });
+
+        txtID.setEditable(false);
 
         jLabel1.setText("ID:");
 
@@ -127,18 +160,82 @@ public class frmEmpleados extends javax.swing.JFrame {
                 + " values (null, '%s', '%s')",oEmpleados.getNombre(),oEmpleados.getCorreo());
         
         objConexion.ejecutarSentenciaSQL(strSentenciaInsert);
+        this.mostrarDatos();
+        this.limpiar();
+              
+    }//GEN-LAST:event_btnAgregarActionPerformed
+
+    private void tblEmpleadosMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_tblEmpleadosMouseClicked
+        
+        if(evt.getClickCount()==1){
+            JTable receptor= (JTable)evt.getSource();
+            
+            txtID.setText(receptor.getModel().getValueAt(receptor.getSelectedRow(),0).toString());
+            txtNombre.setText(receptor.getModel().getValueAt(receptor.getSelectedRow(),1).toString());
+            txtCorreo.setText(receptor.getModel().getValueAt(receptor.getSelectedRow(),2).toString());
+        }
+        btnAgregar.setEnabled(false);
+        btnEditar.setEnabled(true);
+        btnBorrar.setEnabled(true);
+    }//GEN-LAST:event_tblEmpleadosMouseClicked
+
+    private void btnBorrarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnBorrarActionPerformed
+        
+        conexion objConexion=new conexion();
+        
+        empleadosBL oEmpleados=recuperarDatosGUI();
+        
+        String strSentenciaInsert= String.format("delete from Empleados where ID=%d",oEmpleados.getID());
+        
+        objConexion.ejecutarSentenciaSQL(strSentenciaInsert);
+        this.mostrarDatos();
+        this.limpiar();
+        
+    }//GEN-LAST:event_btnBorrarActionPerformed
+
+    private void btnEditarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnEditarActionPerformed
+        conexion objConexion=new conexion();
+        
+        empleadosBL oEmpleados=recuperarDatosGUI();
+        
+        String strSentenciaInsert= String.format("update Empleados set Nombre='%s',"
+                +"Correo='%s' where ID=%d",oEmpleados.getNombre(),oEmpleados.getCorreo(), oEmpleados.getID());
+        
+        objConexion.ejecutarSentenciaSQL(strSentenciaInsert);
+        this.mostrarDatos();
+        this.limpiar();
+    }//GEN-LAST:event_btnEditarActionPerformed
+
+    private void btnCancelarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnCancelarActionPerformed
+        this.limpiar();
+    }//GEN-LAST:event_btnCancelarActionPerformed
+
+    public void mostrarDatos(){
+        
+        while(modelo.getRowCount()>0){
+            modelo.removeRow(0);
+        }
+        
+        conexion objConexion=new conexion();
+        
         try {
             ResultSet resultado=objConexion.consultarRegistros("select * from Empleados");
             while(resultado.next()){
                 System.out.println(resultado.getString("ID")); 
                 System.out.println(resultado.getString("Nombre"));  
-                System.out.println(resultado.getString("Correo"));  
+                System.out.println(resultado.getString("Correo")); 
+                                
+                Object[] oUsuario={resultado.getString("ID"),resultado.getString("Nombre"),resultado.getString("Correo")};
+                
+                modelo.addRow(oUsuario);
             }
         } catch (Exception e) {
             System.out.println(e);
-        }       
-    }//GEN-LAST:event_btnAgregarActionPerformed
-
+        } 
+        
+    }
+    
+    
     public empleadosBL recuperarDatosGUI(){
         empleadosBL oEmpleados=new empleadosBL();
         
@@ -149,6 +246,16 @@ public class frmEmpleados extends javax.swing.JFrame {
         oEmpleados.setCorreo(txtCorreo.getText());
         return oEmpleados;
                 
+    }
+    
+    public void limpiar(){
+        txtID.setText("");
+        txtNombre.setText("");
+        txtCorreo.setText("");
+        
+        btnAgregar.setEnabled(true);
+        btnEditar.setEnabled(false);
+        btnBorrar.setEnabled(false);
     }
     
     public static void main(String args[]) {
@@ -192,7 +299,7 @@ public class frmEmpleados extends javax.swing.JFrame {
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JScrollPane jScrollPane1;
-    private javax.swing.JTable jTable1;
+    private javax.swing.JTable tblEmpleados;
     private javax.swing.JTextField txtCorreo;
     private javax.swing.JTextField txtID;
     private javax.swing.JTextField txtNombre;
